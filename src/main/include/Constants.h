@@ -69,7 +69,7 @@ namespace DriveConstants {
   inline constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kDriveDistancePerRotation = 4.00_in * units::constants::pi / units::turn_t{kDriveGearRatio};
 
   constexpr units::meters_per_second_t kMaxDriveSpeed = 5676_rpm * kDriveDistancePerRotation;
-  constexpr double kSlowDrivePercent = 0.67;
+  constexpr double kSlowDrivePercent = 0.80;
 
   // This is used for rotating the robot in place, about it's center.  This
   // may need to be empirically adjusted, but check kDriveMetersPerRotation
