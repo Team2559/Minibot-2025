@@ -10,7 +10,29 @@ DriveSubsystem::DriveSubsystem() :
   frontLeftMotor{kFrontLeftDriveID, rev::spark::SparkMax::MotorType::kBrushless},
   frontRightMotor{kFrontRightDriveID, rev::spark::SparkMax::MotorType::kBrushless},
   rearLeftMotor{kRearLeftDriveID, rev::spark::SparkMax::MotorType::kBrushless},
-  rearRightMotor{kRearRightDriveID, rev::spark::SparkMax::MotorType::kBrushless}
+  rearRightMotor{kRearRightDriveID, rev::spark::SparkMax::MotorType::kBrushless},
+  wheelSpeedTuner{[this](PIDUpdate update) {
+    SparkMaxConfig config;
+    switch (update.term) {
+      case PIDUpdate::PIDTerm::kP:
+        config.closedLoop.P(update.value, ClosedLoopSlot(update.slot));
+        break;
+      case PIDUpdate::PIDTerm::kI:
+        config.closedLoop.I(update.value, ClosedLoopSlot(update.slot));
+        break;
+      case PIDUpdate::PIDTerm::kD:
+        config.closedLoop.D(update.value, ClosedLoopSlot(update.slot));
+        break;
+      case PIDUpdate::PIDTerm::kFF:
+        driveVff = update.value;
+        return;
+    }
+
+    frontLeftMotor.Configure(config, SparkMax::ResetMode::kNoResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
+    frontRightMotor.Configure(config, SparkMax::ResetMode::kNoResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
+    rearLeftMotor.Configure(config, SparkMax::ResetMode::kNoResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
+    rearRightMotor.Configure(config, SparkMax::ResetMode::kNoResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
+  }}
 {
   {
     SparkMaxConfig driveConfig;
@@ -39,6 +61,20 @@ DriveSubsystem::DriveSubsystem() :
   }
 }
 
+void DriveSubsystem::Periodic() {
+  nt_flVelocity->SetDouble(frontLeftMotor.GetEncoder().GetVelocity());
+  nt_flOutput->SetDouble(frontLeftMotor.GetAppliedOutput());
+
+  nt_frVelocity->SetDouble(frontRightMotor.GetEncoder().GetVelocity());
+  nt_frOutput->SetDouble(frontLeftMotor.GetAppliedOutput());
+
+  nt_rlVelocity->SetDouble(rearLeftMotor.GetEncoder().GetVelocity());
+  nt_rlOutput->SetDouble(rearLeftMotor.GetAppliedOutput());
+
+  nt_rrVelocity->SetDouble(rearRightMotor.GetEncoder().GetVelocity());;
+  nt_rrOutput->SetDouble(rearRightMotor.GetAppliedOutput());
+}
+
 void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
   if (fieldRelative) {
     frc::Rotation2d angle = 0.0_rad;
@@ -52,6 +88,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.frontRight).value()
   );
+  nt_frSetpoint->SetDouble(wheelSpeeds.frontRight.value());
   
   frontLeftMotor.GetClosedLoopController().SetReference(
     wheelSpeeds.frontLeft.value(),
@@ -59,6 +96,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.frontLeft).value()
   );
+  nt_flSetpoint->SetDouble(wheelSpeeds.frontLeft.value());
   
   rearRightMotor.GetClosedLoopController().SetReference(
     wheelSpeeds.rearRight.value(),
@@ -66,6 +104,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.rearRight).value()
   );
+  nt_rrSetpoint->SetDouble(wheelSpeeds.rearRight.value());
     
   rearLeftMotor.GetClosedLoopController().SetReference(
     wheelSpeeds.rearLeft.value(),
@@ -73,6 +112,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.rearLeft).value()
   );
+  nt_rlSetpoint->SetDouble(wheelSpeeds.rearLeft.value());
 }
 
 void DriveSubsystem::stop() {
