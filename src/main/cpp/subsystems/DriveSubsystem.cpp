@@ -11,6 +11,8 @@ DriveSubsystem::DriveSubsystem() :
   frontRightMotor{kFrontRightDriveID, rev::spark::SparkMax::MotorType::kBrushless},
   rearLeftMotor{kRearLeftDriveID, rev::spark::SparkMax::MotorType::kBrushless},
   rearRightMotor{kRearRightDriveID, rev::spark::SparkMax::MotorType::kBrushless},
+  ahrs{studica::AHRS::NavXComType::kMXP_SPI},
+  poseEstimator{driveKinematics, ahrs.GetRotation3d(), getWheelPositions(), frc::Pose3d()},
   wheelSpeedTuner{[this](PIDUpdate update) {
     SparkMaxConfig config;
     switch (update.term) {
@@ -62,6 +64,8 @@ DriveSubsystem::DriveSubsystem() :
 }
 
 void DriveSubsystem::Periodic() {
+  poseEstimator.Update(ahrs.GetRotation3d(), getWheelPositions());
+
   nt_flVelocity->SetDouble(frontLeftMotor.GetEncoder().GetVelocity());
   nt_flOutput->SetDouble(frontLeftMotor.GetAppliedOutput());
 
@@ -77,7 +81,7 @@ void DriveSubsystem::Periodic() {
 
 void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
   if (fieldRelative) {
-    frc::Rotation2d angle = 0.0_rad;
+    frc::Rotation2d angle = poseEstimator.GetEstimatedPosition().ToPose2d().Rotation();
     speed = frc::ChassisSpeeds::FromFieldRelativeSpeeds(speed, angle);
   }
   frc::MecanumDriveWheelSpeeds wheelSpeeds = driveKinematics.ToWheelSpeeds(speed);
@@ -122,3 +126,27 @@ void DriveSubsystem::stop() {
   rearRightMotor.StopMotor();
 }
 
+void DriveSubsystem::resetFieldOrientation(bool inverted) {
+  poseEstimator.ResetRotation(frc::Rotation3d(inverted ? frc::Rotation2d(180_deg) : frc::Rotation2d(0_deg)));
+}
+
+void DriveSubsystem::resetPose(frc::Pose3d pose) {
+  poseEstimator.ResetPose(pose);
+}
+
+frc::Pose3d DriveSubsystem::getPose() {
+  return poseEstimator.GetEstimatedPosition();
+}
+
+void DriveSubsystem::updateVisionPose(frc::Pose3d measurement, units::millisecond_t timestamp) {
+  poseEstimator.AddVisionMeasurement(measurement, timestamp);
+}
+
+const frc::MecanumDriveWheelPositions DriveSubsystem::getWheelPositions() {
+  return frc::MecanumDriveWheelPositions {
+    units::meter_t{frontLeftMotor.GetEncoder().GetPosition()},
+    units::meter_t{frontRightMotor.GetEncoder().GetPosition()},
+    units::meter_t{rearLeftMotor.GetEncoder().GetPosition()},
+    units::meter_t{rearRightMotor.GetEncoder().GetPosition()},
+  };
+}
