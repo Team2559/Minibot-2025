@@ -73,8 +73,7 @@ class DriveSubsystem : public frc2::SubsystemBase {
 
     static void graphClosedLoop(rev::spark::SparkMax &motor);
 
-    // TODO: Add pose estimation
-    // TODO: Add IMU for heading feedback
+    // TODO: Create TestInit to add wheelSpeedTuner to dashboard
     // TODO: Add chassis position PID loops
     // TODO: Add Choreo path following
 
