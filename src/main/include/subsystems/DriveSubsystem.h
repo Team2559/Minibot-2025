@@ -5,6 +5,7 @@
 #include <frc/estimator/MecanumDrivePoseEstimator3d.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/SubsystemBase.h>
+#include <networktables/DoubleTopic.h>
 #include <networktables/GenericEntry.h>
 #include <rev/SparkMax.h>
 #include <studica/AHRS.h>
@@ -17,6 +18,8 @@ class DriveSubsystem : public frc2::SubsystemBase {
     DriveSubsystem();
 
     void Periodic() override;
+
+    void TestInit();
 
     /**
      * Drive at approximately the requested speed
@@ -73,25 +76,24 @@ class DriveSubsystem : public frc2::SubsystemBase {
 
     static void graphClosedLoop(rev::spark::SparkMax &motor);
 
-    // TODO: Create TestInit to add wheelSpeedTuner to dashboard
     // TODO: Add chassis position PID loops
     // TODO: Add Choreo path following
 
     double driveVff;
 
-    nt::GenericEntry *nt_flVelocity;
-    nt::GenericEntry *nt_flSetpoint;
-    nt::GenericEntry *nt_flOutput;    
+    nt::DoublePublisher nt_flVelocity;
+    nt::DoublePublisher nt_flSetpoint;
+    nt::DoublePublisher nt_flOutput;    
     
-    nt::GenericEntry *nt_frVelocity;
-    nt::GenericEntry *nt_frSetpoint;
-    nt::GenericEntry *nt_frOutput;    
+    nt::DoublePublisher nt_frVelocity;
+    nt::DoublePublisher nt_frSetpoint;
+    nt::DoublePublisher nt_frOutput;    
     
-    nt::GenericEntry *nt_rlVelocity;
-    nt::GenericEntry *nt_rlSetpoint;
-    nt::GenericEntry *nt_rlOutput;
+    nt::DoublePublisher nt_rlVelocity;
+    nt::DoublePublisher nt_rlSetpoint;
+    nt::DoublePublisher nt_rlOutput;
 
-    nt::GenericEntry *nt_rrVelocity;
-    nt::GenericEntry *nt_rrSetpoint;
-    nt::GenericEntry *nt_rrOutput;
+    nt::DoublePublisher nt_rrVelocity;
+    nt::DoublePublisher nt_rrSetpoint;
+    nt::DoublePublisher nt_rrOutput;
 };

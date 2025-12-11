@@ -1,6 +1,11 @@
 #include "subsystems/DriveSubsystem.h"
 #include "Constants.h"
 
+#include <frc/smartdashboard/SmartDashboard.h>
+#include <frc2/command/InstantCommand.h>
+#include <frc2/command/button/RobotModeTriggers.h>
+#include <networktables/NetworkTable.h>
+#include <networktables/NetworkTableInstance.h>
 #include <rev/config/SparkMaxConfig.h>
 
 using namespace DriveConstants;
@@ -61,22 +66,48 @@ DriveSubsystem::DriveSubsystem() :
     frontRightMotor.Configure(driveConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
     rearRightMotor.Configure(driveConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
   }
+  {
+    auto ntInstance = nt::NetworkTableInstance::GetDefault();
+    auto table = ntInstance.GetTable("Drive");
+
+    nt_flVelocity = table->GetDoubleTopic("flVelocity").Publish();
+    nt_flOutput = table->GetDoubleTopic("flOutput").Publish();
+    nt_flSetpoint = table->GetDoubleTopic("flSetpoint").Publish();
+
+    nt_frVelocity = table->GetDoubleTopic("frVelocity").Publish();
+    nt_frOutput = table->GetDoubleTopic("frOutput").Publish();
+    nt_frSetpoint = table->GetDoubleTopic("frSetpoint").Publish();
+
+    nt_rlOutput = table->GetDoubleTopic("rlOutput").Publish();
+    nt_rlVelocity = table->GetDoubleTopic("rlVelocity").Publish();
+    nt_rlSetpoint = table->GetDoubleTopic("rlSetpoint").Publish();
+
+    nt_rrOutput = table->GetDoubleTopic("rrOutput").Publish();
+    nt_rrSetpoint = table->GetDoubleTopic("rrSetpoint").Publish();
+    nt_rrVelocity = table->GetDoubleTopic("rrVelocity").Publish();
+  }
+  
+  frc2::RobotModeTriggers::Test().OnTrue(frc2::InstantCommand([this]() {this->TestInit();}).ToPtr());
 }
 
 void DriveSubsystem::Periodic() {
   poseEstimator.Update(ahrs.GetRotation3d(), getWheelPositions());
 
-  nt_flVelocity->SetDouble(frontLeftMotor.GetEncoder().GetVelocity());
-  nt_flOutput->SetDouble(frontLeftMotor.GetAppliedOutput());
+  nt_flVelocity.Set(frontLeftMotor.GetEncoder().GetVelocity());
+  nt_flOutput.Set(frontLeftMotor.GetAppliedOutput());
 
-  nt_frVelocity->SetDouble(frontRightMotor.GetEncoder().GetVelocity());
-  nt_frOutput->SetDouble(frontLeftMotor.GetAppliedOutput());
+  nt_frVelocity.Set(frontRightMotor.GetEncoder().GetVelocity());
+  nt_frOutput.Set(frontLeftMotor.GetAppliedOutput());
 
-  nt_rlVelocity->SetDouble(rearLeftMotor.GetEncoder().GetVelocity());
-  nt_rlOutput->SetDouble(rearLeftMotor.GetAppliedOutput());
+  nt_rlVelocity.Set(rearLeftMotor.GetEncoder().GetVelocity());
+  nt_rlOutput.Set(rearLeftMotor.GetAppliedOutput());
 
-  nt_rrVelocity->SetDouble(rearRightMotor.GetEncoder().GetVelocity());;
-  nt_rrOutput->SetDouble(rearRightMotor.GetAppliedOutput());
+  nt_rrVelocity.Set(rearRightMotor.GetEncoder().GetVelocity());;
+  nt_rrOutput.Set(rearRightMotor.GetAppliedOutput());
+}
+
+void DriveSubsystem::TestInit() {
+  frc::SmartDashboard::PutData("Drive/wheelSpeedTuner", &wheelSpeedTuner);
 }
 
 void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
@@ -92,7 +123,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.frontRight).value()
   );
-  nt_frSetpoint->SetDouble(wheelSpeeds.frontRight.value());
+  nt_frSetpoint.Set(wheelSpeeds.frontRight.value());
   
   frontLeftMotor.GetClosedLoopController().SetReference(
     wheelSpeeds.frontLeft.value(),
@@ -100,7 +131,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.frontLeft).value()
   );
-  nt_flSetpoint->SetDouble(wheelSpeeds.frontLeft.value());
+  nt_flSetpoint.Set(wheelSpeeds.frontLeft.value());
   
   rearRightMotor.GetClosedLoopController().SetReference(
     wheelSpeeds.rearRight.value(),
@@ -108,7 +139,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.rearRight).value()
   );
-  nt_rrSetpoint->SetDouble(wheelSpeeds.rearRight.value());
+  nt_rrSetpoint.Set(wheelSpeeds.rearRight.value());
     
   rearLeftMotor.GetClosedLoopController().SetReference(
     wheelSpeeds.rearLeft.value(),
@@ -116,7 +147,7 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     {},
     (driveVff * wheelSpeeds.rearLeft).value()
   );
-  nt_rlSetpoint->SetDouble(wheelSpeeds.rearLeft.value());
+  nt_rlSetpoint.Set(wheelSpeeds.rearLeft.value());
 }
 
 void DriveSubsystem::stop() {

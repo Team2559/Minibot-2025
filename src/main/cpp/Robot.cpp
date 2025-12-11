@@ -57,7 +57,6 @@ void Robot::TeleopInit() {
  * This function is called periodically during operator control.
  */
 void Robot::TeleopPeriodic() {}
-
 /**
  * This function is called periodically during test mode.
  */
