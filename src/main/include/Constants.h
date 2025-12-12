@@ -78,10 +78,25 @@ namespace DriveConstants {
 
   const units::radians_per_second_t kMaxTurnSpeed = kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360_deg;
 
+  // Closed loop feedback for drive wheel velocities
   namespace DrivePID {
     inline constexpr double kP = 1.0;
     inline constexpr double kI = 0.0;
     inline constexpr double kD = 0.0;
     constexpr double kV = (1.0 / MotorConstants::kVNeo1 / kDriveDistancePerRotation).value();
+  }
+
+  // Closed loop feedback for chassis translation
+  namespace TranslationPID {
+    inline constexpr double kP = 1.0;
+    inline constexpr double kI = 0.0;
+    inline constexpr double kD = 0.0;
+  }
+
+  // Closed loop feedback for chassis orientation
+  namespace OrientationPID {
+    inline constexpr double kP = 1.0;
+    inline constexpr double kI = 0.0;
+    inline constexpr double kD = 0.0;
   }
 }

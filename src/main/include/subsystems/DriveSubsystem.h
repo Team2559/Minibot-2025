@@ -1,8 +1,9 @@
 #pragma once
-
+#include <choreo/Choreo.h>
+#include <frc/controller/PIDController.h>
+#include <frc/estimator/MecanumDrivePoseEstimator3d.h>
 #include <frc/geometry/Pose3d.h>
 #include <frc/kinematics/MecanumDriveKinematics.h>
-#include <frc/estimator/MecanumDrivePoseEstimator3d.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/SubsystemBase.h>
 #include <networktables/DoubleTopic.h>
@@ -25,6 +26,11 @@ class DriveSubsystem : public frc2::SubsystemBase {
      * Drive at approximately the requested speed
      */
     void drive(frc::ChassisSpeeds speed, bool fieldRelative);
+
+    /**
+     * Move towards the choreo trajectory sample position (with PID feedback)
+     */
+    void followTrajectory(const choreo::SwerveSample &sample);
 
     /**
      * Stop all drivetrain movement
@@ -63,16 +69,25 @@ class DriveSubsystem : public frc2::SubsystemBase {
         DriveConstants::kBackRightWheel,
     };
   private:
+    // The four mecanum wheels
     rev::spark::SparkMax frontLeftMotor;
     rev::spark::SparkMax frontRightMotor;
     rev::spark::SparkMax rearLeftMotor;
     rev::spark::SparkMax rearRightMotor;
 
+    // The navX gyro sensor.
     studica::AHRS ahrs;
 
+    // Pose estimator combines odometry with vision readings to yield an accurate robot pose
     frc::MecanumDrivePoseEstimator3d poseEstimator;
 
+    // Tuners to adjust PID values live from the dashboard; greatly increases the ease of tuning
     PIDTuner wheelSpeedTuner;
+
+    // PID controllers for autonomous path following
+    frc::PIDController xController;
+    frc::PIDController yController;
+    frc::PIDController rController;
 
     static void graphClosedLoop(rev::spark::SparkMax &motor);
 
@@ -81,6 +96,7 @@ class DriveSubsystem : public frc2::SubsystemBase {
 
     double driveVff;
 
+    // Individual wheel velocity graphing
     nt::DoublePublisher nt_flVelocity;
     nt::DoublePublisher nt_flSetpoint;
     nt::DoublePublisher nt_flOutput;    
@@ -96,4 +112,18 @@ class DriveSubsystem : public frc2::SubsystemBase {
     nt::DoublePublisher nt_rrVelocity;
     nt::DoublePublisher nt_rrSetpoint;
     nt::DoublePublisher nt_rrOutput;
-};
+
+    // Chassis position graphing
+    nt::DoublePublisher nt_xPosition;
+    nt::DoublePublisher nt_xSetpoint;
+    nt::DoublePublisher nt_xOutput;
+    
+    nt::DoublePublisher nt_yPosition;
+    nt::DoublePublisher nt_ySetpoint;
+    nt::DoublePublisher nt_yOutput;
+    
+    nt::DoublePublisher nt_rPosition;
+    nt::DoublePublisher nt_rSetpoint;
+    nt::DoublePublisher nt_rOutput;
+  };
+

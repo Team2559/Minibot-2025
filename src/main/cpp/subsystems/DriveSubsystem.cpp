@@ -39,9 +39,14 @@ DriveSubsystem::DriveSubsystem() :
     frontRightMotor.Configure(config, SparkMax::ResetMode::kNoResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
     rearLeftMotor.Configure(config, SparkMax::ResetMode::kNoResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
     rearRightMotor.Configure(config, SparkMax::ResetMode::kNoResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
-  }}
+  }},
+  xController{TranslationPID::kP, TranslationPID::kI, TranslationPID::kD},
+  yController{TranslationPID::kP, TranslationPID::kI, TranslationPID::kD},
+  rController{OrientationPID::kP, OrientationPID::kI, OrientationPID::kD}
 {
-  {
+  { 
+    // Drive motor configuration
+
     SparkMaxConfig driveConfig;
     driveConfig
       .SetIdleMode(SparkMaxConfig::IdleMode::kBrake)
@@ -67,31 +72,46 @@ DriveSubsystem::DriveSubsystem() :
     rearRightMotor.Configure(driveConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
   }
   {
+    // NetworkTables logging initialization
+
     auto ntInstance = nt::NetworkTableInstance::GetDefault();
     auto table = ntInstance.GetTable("Drive");
 
     nt_flVelocity = table->GetDoubleTopic("flVelocity").Publish();
-    nt_flOutput = table->GetDoubleTopic("flOutput").Publish();
     nt_flSetpoint = table->GetDoubleTopic("flSetpoint").Publish();
+    nt_flOutput = table->GetDoubleTopic("flOutput").Publish();
 
     nt_frVelocity = table->GetDoubleTopic("frVelocity").Publish();
-    nt_frOutput = table->GetDoubleTopic("frOutput").Publish();
     nt_frSetpoint = table->GetDoubleTopic("frSetpoint").Publish();
+    nt_frOutput = table->GetDoubleTopic("frOutput").Publish();
 
-    nt_rlOutput = table->GetDoubleTopic("rlOutput").Publish();
     nt_rlVelocity = table->GetDoubleTopic("rlVelocity").Publish();
     nt_rlSetpoint = table->GetDoubleTopic("rlSetpoint").Publish();
+    nt_rlOutput = table->GetDoubleTopic("rlOutput").Publish();
 
-    nt_rrOutput = table->GetDoubleTopic("rrOutput").Publish();
-    nt_rrSetpoint = table->GetDoubleTopic("rrSetpoint").Publish();
     nt_rrVelocity = table->GetDoubleTopic("rrVelocity").Publish();
+    nt_rrSetpoint = table->GetDoubleTopic("rrSetpoint").Publish();                              //67
+    nt_rrOutput = table->GetDoubleTopic("rrOutput").Publish();
+
+    
+    nt_xPosition = table->GetDoubleTopic("xPosition").Publish();
+    nt_xOutput = table->GetDoubleTopic("xOutput").Publish();
+    nt_xSetpoint = table->GetDoubleTopic("xSetpoint").Publish();
+
+    nt_yOutput = table->GetDoubleTopic("yOutput").Publish();
+    nt_yPosition = table->GetDoubleTopic("yPosition").Publish();
+    nt_ySetpoint = table->GetDoubleTopic("ySetpoint").Publish();
+
+    nt_rPosition = table->GetDoubleTopic("rPosition").Publish();
+    nt_rSetpoint = table->GetDoubleTopic("rSetpoint").Publish();
+    nt_rOutput = table->GetDoubleTopic("rOutput").Publish();
   }
   
   frc2::RobotModeTriggers::Test().OnTrue(frc2::InstantCommand([this]() {this->TestInit();}).ToPtr());
 }
 
 void DriveSubsystem::Periodic() {
-  poseEstimator.Update(ahrs.GetRotation3d(), getWheelPositions());
+  frc::Pose2d pose = poseEstimator.Update(ahrs.GetRotation3d(), getWheelPositions()).ToPose2d();
 
   nt_flVelocity.Set(frontLeftMotor.GetEncoder().GetVelocity());
   nt_flOutput.Set(frontLeftMotor.GetAppliedOutput());
@@ -104,6 +124,10 @@ void DriveSubsystem::Periodic() {
 
   nt_rrVelocity.Set(rearRightMotor.GetEncoder().GetVelocity());;
   nt_rrOutput.Set(rearRightMotor.GetAppliedOutput());
+
+  nt_xPosition.Set(pose.X().value());
+  nt_yPosition.Set(pose.Y().value());
+  nt_rPosition.Set(pose.Rotation().Radians().value());
 }
 
 void DriveSubsystem::TestInit() {
@@ -111,6 +135,10 @@ void DriveSubsystem::TestInit() {
 }
 
 void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
+  nt_xOutput.Set(speed.vx.value());
+  nt_yOutput.Set(speed.vy.value());
+  nt_rOutput.Set(speed.omega.value());
+
   if (fieldRelative) {
     frc::Rotation2d angle = poseEstimator.GetEstimatedPosition().ToPose2d().Rotation();
     speed = frc::ChassisSpeeds::FromFieldRelativeSpeeds(speed, angle);
@@ -148,6 +176,32 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
     (driveVff * wheelSpeeds.rearLeft).value()
   );
   nt_rlSetpoint.Set(wheelSpeeds.rearLeft.value());
+}
+
+void DriveSubsystem::followTrajectory(const choreo::SwerveSample &sample) {
+  frc::Pose2d pose = getPose().ToPose2d();
+
+  nt_xSetpoint.Set(sample.x.value());
+  nt_ySetpoint.Set(sample.y.value());
+  nt_rSetpoint.Set(sample.heading.value());
+
+  units::meters_per_second_t xFeedback{xController.Calculate(pose.X().value(), sample.x.value())};
+  units::meters_per_second_t yFeedback{yController.Calculate(pose.Y().value(), sample.y.value())};
+
+  units::radian_t robot_heading = pose.Rotation().Radians();
+  units::radian_t sample_heading = sample.heading;
+  units::radian_t target_heading = frc::AngleModulus(sample_heading - robot_heading) + robot_heading;
+
+  units::radians_per_second_t rFeedback{rController.Calculate(robot_heading.value(), target_heading.value())};
+  
+  drive(
+    frc::ChassisSpeeds(
+      sample.vx + xFeedback,
+      sample.vy + yFeedback,
+      sample.omega + rFeedback
+    ),
+    true
+  );
 }
 
 void DriveSubsystem::stop() {
