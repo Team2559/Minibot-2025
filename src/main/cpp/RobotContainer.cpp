@@ -26,18 +26,23 @@ RobotContainer::RobotContainer() {
     }).ToPtr()
   );
 
-  driveSubsystem.SetDefaultCommand(frc2::RunCommand([this]() {
-    const auto controls = GetDriveTeleopControls();
+  driveSubsystem.SetDefaultCommand(
+    frc2::RunCommand(
+      [this]() {
+        const auto controls = GetDriveTeleopControls();
 
-    driveSubsystem.drive(
-      frc::ChassisSpeeds(
-        std::get<0>(controls) * DriveConstants::kMaxDriveSpeed,
-        std::get<1>(controls) * DriveConstants::kMaxDriveSpeed,
-        std::get<2>(controls) * DriveConstants::kMaxTurnSpeed
-      ),
-      std::get<3>(controls)
-    );
-  }));
+        driveSubsystem.drive(
+          frc::ChassisSpeeds(
+            std::get<0>(controls) * DriveConstants::kMaxDriveSpeed,
+            std::get<1>(controls) * DriveConstants::kMaxDriveSpeed,
+            std::get<2>(controls) * DriveConstants::kMaxTurnSpeed
+          ),
+          std::get<3>(controls)
+        );
+      },
+      {&driveSubsystem}
+    )
+  );
 
   // Configure the button bindings
   ConfigureBindings();
