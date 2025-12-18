@@ -55,9 +55,11 @@ void RobotContainer::ConfigureBindings() {
   // pressed, cancelling on release.
   m_driverController.B().WhileTrue(m_subsystem.ExampleMethodCommand());
 
-  m_driverController.Back().OnTrue(frc2::InstantCommand([this]() {
-                                     // TODO: Reset field relative orientation
-                                   }).ToPtr());
+  m_driverController.Back().OnTrue(
+    frc2::InstantCommand([this]() {
+      driveSubsystem.resetFieldOrientation(m_isRedAlliance);
+    }).ToPtr()
+  );
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
