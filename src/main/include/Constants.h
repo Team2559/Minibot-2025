@@ -5,6 +5,7 @@
 #pragma once
 
 #include <frc/geometry/Translation2d.h>
+#include <frc/system/plant/DCMotor.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 #include <units/constants.h>
@@ -24,25 +25,8 @@
  * they are needed.
  */
 
-namespace MotorConstants {
-  // Speed constant for a Neo Vortex, in turns per second per volt
-  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeoVortex = 5676_rpm / 12.0_V;
-  // Speed constant for a Neo 1.0, in turns per second per volt
-  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeo1 = 5676_rpm / 12.0_V;
-  // Speed constant for a REV Neo 550, in turns per second per volt
-  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeo550 = 917.0_rpm / 1.0_V;
-  // Torque constant for a REV Neo 550, in turns newton-meters per amp
-  constexpr units::unit_t<units::compound_unit<units::newton_meter, units::inverse<units::ampere>>> kTNeo550 = 1.0_rad / kVNeo550;
-  // Torque constant for a CTR Minion, in newton-meters per amp
-  constexpr units::unit_t<units::compound_unit<units::newton_meter, units::inverse<units::ampere>>> kTMinion = 0.01568_Nm / 1.0_A;
-  // Speed constant for a CTR Minion, in turns per second per volt
-  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVMinion = 1.0_rad / kTMinion;
-}
-
 namespace OperatorConstants {
-
   inline constexpr int kDriverControllerPort = 0;
-
 }
 
 namespace DriveConstants {
@@ -65,7 +49,8 @@ namespace DriveConstants {
   // This should be empirically determined!  This is just an initial guess.
   // This is used for both distance and velocity control. If this is off, it
   // will throw off kMaxDriveSpeed and kMaxTurnRate, as well as drive values.
-  inline constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kDriveDistancePerRotation = 4.00_in * units::constants::pi / units::turn_t{kDriveGearRatio};
+  inline constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kDriveDistancePerRotation =
+    4.00_in * units::constants::pi / units::turn_t{kDriveGearRatio};
 
   constexpr units::meters_per_second_t kMaxDriveSpeed = 5676_rpm * kDriveDistancePerRotation;
   constexpr double kSlowDrivePercent = 0.80;
@@ -73,16 +58,22 @@ namespace DriveConstants {
   // This is used for rotating the robot in place, about it's center.  This
   // may need to be empirically adjusted, but check kDriveMetersPerRotation
   // before making any adjustment here.
-  const units::meter_t kDriveMetersPerSteerCircle = M_PI * units::math::sqrt(units::math::pow<2>(kDriveBaseLength) + units::math::pow<2>(kDriveBaseWidth));
+  constexpr units::meter_t kDriveMetersPerSteerCircle =
+    M_PI * units::math::sqrt(units::math::pow<2>(kDriveBaseLength) + units::math::pow<2>(kDriveBaseWidth));
 
-  const units::radians_per_second_t kMaxTurnSpeed = kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360_deg;
+  constexpr units::radians_per_second_t kMaxTurnSpeed = kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360_deg;
+
+  constexpr frc::DCMotor driveMotorModel = frc::DCMotor::NEO();
 
   // Closed loop feedback for drive wheel velocities
   namespace DrivePID {
     inline constexpr double kP = 1.0;
     inline constexpr double kI = 0.0;
     inline constexpr double kD = 0.0;
-    constexpr double kV = (1.0 / MotorConstants::kVNeo1 / kDriveDistancePerRotation).value();
+    constexpr double kV =
+      (1.0 / driveMotorModel.Kv / kDriveDistancePerRotation)
+        .convert<units::compound_unit<units::volt, units::inverse<units::meters_per_second>>>()
+        .value();
   }
 
   // Closed loop feedback for chassis translation
