@@ -1,4 +1,4 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) FRC 2559, FIRST, and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
@@ -18,14 +18,14 @@
  */
 class ExampleCommand
     : public frc2::CommandHelper<frc2::Command, ExampleCommand> {
- public:
-  /**
-   * Creates a new ExampleCommand.
-   *
-   * @param subsystem The subsystem used by this command.
-   */
-  explicit ExampleCommand(ExampleSubsystem* subsystem);
+  public:
+    /**
+     * Creates a new ExampleCommand.
+     *
+     * @param subsystem The subsystem used by this command.
+     */
+    explicit ExampleCommand(ExampleSubsystem *subsystem);
 
- private:
-  ExampleSubsystem* m_subsystem;
+  private:
+    ExampleSubsystem *m_subsystem;
 };

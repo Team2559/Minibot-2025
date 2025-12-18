@@ -1,20 +1,20 @@
-#include <math.h>
+// Copyright (c) FRC 2559, FIRST, and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
 
 #include "ButtonUtil.h"
 
-double ConditionRawTriggerInput(double RawTrigVal) noexcept
-{
+#include <math.h>
+
+double ConditionRawTriggerInput(double RawTrigVal) noexcept {
   // Input deadband around 0.0 (+/- range).
   double deadZoneVal = 0.05;
   double deadZoneCorrection = 1.0 / (1.0 - deadZoneVal);
 
-  if (RawTrigVal < deadZoneVal)
-  {
+  if (RawTrigVal < deadZoneVal) {
     // Trigger is within the deadzone
     return 0;
-  }
-  else
-  {
+  } else {
     // Trigger is outside the deadzone, scale the trigger value to make low magnitudes more sensitive
     RawTrigVal -= deadZoneVal;
     RawTrigVal *= deadZoneCorrection;
@@ -22,8 +22,7 @@ double ConditionRawTriggerInput(double RawTrigVal) noexcept
   }
 }
 
-double ConditionRawJoystickInput(double RawJoystickVal, double mixer) noexcept
-{
+double ConditionRawJoystickInput(double RawJoystickVal, double mixer) noexcept {
   /*
   Add some deadzone, so the robot doesn't drive when the joysticks are released
   and return to "zero". These implement a continuous deadband, one in which
@@ -34,7 +33,7 @@ double ConditionRawJoystickInput(double RawJoystickVal, double mixer) noexcept
   value does a pretty good job with the deadband, but doing both is easy and
   guarantees no movement in the deadband. Cubing makes it easier to command
   smaller/slower movements, while still being able to command full power. The
-  'mixer` parameter specifies what percentage of contribution towards the 
+  'mixer` parameter specifies what percentage of contribution towards the
   output the cubed value has, with the remainder coming from the linear term.
   */
 
@@ -42,19 +41,14 @@ double ConditionRawJoystickInput(double RawJoystickVal, double mixer) noexcept
   constexpr double deadZoneVal = 0.05;
   constexpr double deadZoneCorrection = 1.0 / (1.0 - deadZoneVal);
 
-  if (RawJoystickVal >= -deadZoneVal && RawJoystickVal <= +deadZoneVal)
-  {
+  if (RawJoystickVal >= -deadZoneVal && RawJoystickVal <= +deadZoneVal) {
     // Stick is within deadzone
     RawJoystickVal = 0.0;
-  }
-  else if (RawJoystickVal < -deadZoneVal)
-  {
+  } else if (RawJoystickVal < -deadZoneVal) {
     // Stick is "below" deadzone
     RawJoystickVal += deadZoneVal;
     RawJoystickVal *= deadZoneCorrection;
-  }
-  else if (RawJoystickVal > +deadZoneVal)
-  {
+  } else if (RawJoystickVal > +deadZoneVal) {
     // Stick is "above" deadzone
     RawJoystickVal -= deadZoneVal;
     RawJoystickVal *= deadZoneCorrection;

@@ -1,4 +1,4 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) FRC 2559, FIRST, and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
@@ -8,8 +8,8 @@
 #include <frc2/command/button/CommandXboxController.h>
 
 #include "Constants.h"
-#include "subsystems/ExampleSubsystem.h"
 #include "subsystems/DriveSubsystem.h"
+#include "subsystems/ExampleSubsystem.h"
 
 /**
  * This class is where the bulk of the robot should be declared.  Since
@@ -19,24 +19,25 @@
  * commands, and trigger mappings) should be declared here.
  */
 class RobotContainer {
- public:
-  RobotContainer();
+  public:
+    RobotContainer();
 
-  frc2::CommandPtr GetAutonomousCommand();
+    frc2::CommandPtr GetAutonomousCommand();
 
- private:
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  frc2::CommandXboxController m_driverController{
-      OperatorConstants::kDriverControllerPort};
+  private:
+    // Replace with CommandPS4Controller or CommandJoystick if needed
+    frc2::CommandXboxController m_driverController{
+      OperatorConstants::kDriverControllerPort
+    };
 
-  // The robot's subsystems are defined here...
-  ExampleSubsystem m_subsystem;
-  DriveSubsystem driveSubsystem;
+    // The robot's subsystems are defined here...
+    ExampleSubsystem m_subsystem;
+    DriveSubsystem driveSubsystem;
 
-  // Drive control mode flags for holonomic drivetrains (like swerve)
-  bool m_fieldOriented = true;
-  bool m_isRedAlliance = false;
+    // Drive control mode flags for holonomic drivetrains (like swerve)
+    bool m_fieldOriented = true;
+    bool m_isRedAlliance = false;
 
-  void ConfigureBindings();
-  std::tuple<double, double, double, bool> GetDriveTeleopControls();
+    void ConfigureBindings();
+    std::tuple<double, double, double, bool> GetDriveTeleopControls();
 };

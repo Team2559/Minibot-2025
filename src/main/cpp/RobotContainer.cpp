@@ -1,15 +1,14 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) FRC 2559, FIRST, and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
 #include "RobotContainer.h"
 
 #include <frc/DriverStation.h>
-#include <frc2/command/button/Trigger.h>
-#include <frc2/command/button/RobotModeTriggers.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/RunCommand.h>
-
+#include <frc2/command/button/RobotModeTriggers.h>
+#include <frc2/command/button/Trigger.h>
 
 #include "ButtonUtil.h"
 #include "commands/Autos.h"
@@ -18,12 +17,14 @@
 RobotContainer::RobotContainer() {
   // Initialize all of your commands and subsystems here
 
-  frc2::RobotModeTriggers::Disabled().OnFalse(frc2::InstantCommand([this]() {
-    std::optional<frc::DriverStation::Alliance> alliance = frc::DriverStation::GetAlliance();
-    if (alliance.has_value()) {
-      m_isRedAlliance = alliance.value() == frc::DriverStation::Alliance::kRed;
-    }
-  }).ToPtr());
+  frc2::RobotModeTriggers::Disabled().OnFalse(
+    frc2::InstantCommand([this]() {
+      std::optional<frc::DriverStation::Alliance> alliance = frc::DriverStation::GetAlliance();
+      if (alliance.has_value()) {
+        m_isRedAlliance = alliance.value() == frc::DriverStation::Alliance::kRed;
+      }
+    }).ToPtr()
+  );
 
   driveSubsystem.SetDefaultCommand(frc2::RunCommand([this]() {
     const auto controls = GetDriveTeleopControls();
@@ -55,8 +56,8 @@ void RobotContainer::ConfigureBindings() {
   m_driverController.B().WhileTrue(m_subsystem.ExampleMethodCommand());
 
   m_driverController.Back().OnTrue(frc2::InstantCommand([this]() {
-    // TODO: Reset field relative orientation
-  }).ToPtr());
+                                     // TODO: Reset field relative orientation
+                                   }).ToPtr());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
@@ -64,11 +65,9 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   return autos::ExampleAuto(&m_subsystem);
 }
 
-
-std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls()
-{
+std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls() {
   double boostTriggerValue = m_driverController.GetLeftTriggerAxis();
-  double speedStickX = -m_driverController.GetLeftY(); 
+  double speedStickX = -m_driverController.GetLeftY();
   double speedStickY = -m_driverController.GetRightX();
   double headingStickY = -m_driverController.GetRightX();
 

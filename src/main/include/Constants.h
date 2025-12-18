@@ -1,18 +1,18 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) FRC 2559, FIRST, and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
 #pragma once
 
-#include <units/length.h>
+#include <frc/geometry/Translation2d.h>
 #include <units/angle.h>
-#include <units/velocity.h>
 #include <units/angular_velocity.h>
 #include <units/constants.h>
-#include <units/voltage.h>
-#include <units/torque.h>
+#include <units/length.h>
 #include <units/math.h>
-#include <frc/geometry/Translation2d.h>
+#include <units/torque.h>
+#include <units/velocity.h>
+#include <units/voltage.h>
 
 /**
  * The Constants header provides a convenient place for teams to hold robot-wide
@@ -39,12 +39,11 @@ namespace MotorConstants {
   constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVMinion = 1.0_rad / kTMinion;
 }
 
-
 namespace OperatorConstants {
 
-inline constexpr int kDriverControllerPort = 0;
+  inline constexpr int kDriverControllerPort = 0;
 
-}  // namespace OperatorConstants
+}
 
 namespace DriveConstants {
   inline constexpr int kFrontLeftDriveID = 0;
@@ -52,7 +51,7 @@ namespace DriveConstants {
   inline constexpr int kRearLeftDriveID = 69;
   inline constexpr int kRearRightDriveID = 67;
 
-  inline constexpr double kDriveGearRatio = 4.0/1.0; // approx 5.90
+  inline constexpr double kDriveGearRatio = 4.0 / 1.0; // approx 5.90
 
   // Distance between the wheels, width and length
   constexpr units::meter_t kDriveBaseWidth = 19.8_in;
