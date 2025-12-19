@@ -10,7 +10,7 @@
 
 namespace autos {
   /**
-   * Example static factory for an autonomous command.
+   * Example static factory for a path-based autonomous command.
    */
-  frc2::CommandPtr ExampleAuto(ExampleSubsystem *subsystem);
+  frc2::CommandPtr ExampleAuto(DriveSubsystem &driveSubsystem);
 } // namespace autos
