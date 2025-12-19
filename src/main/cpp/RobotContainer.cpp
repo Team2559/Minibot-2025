@@ -31,7 +31,7 @@ RobotContainer::RobotContainer() {
       [this]() {
         const auto controls = GetDriveTeleopControls();
 
-        driveSubsystem.drive(
+        driveSubsystem.Drive(
           frc::ChassisSpeeds(
             std::get<0>(controls) * DriveConstants::kMaxDriveSpeed,
             std::get<1>(controls) * DriveConstants::kMaxDriveSpeed,
@@ -62,7 +62,7 @@ void RobotContainer::ConfigureBindings() {
 
   m_driverController.Back().OnTrue(
     frc2::InstantCommand([this]() {
-      driveSubsystem.resetFieldOrientation(m_isRedAlliance);
+      driveSubsystem.ResetFieldOrientation(m_isRedAlliance);
     }).ToPtr()
   );
 }

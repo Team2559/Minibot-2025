@@ -30,42 +30,42 @@ class DriveSubsystem : public frc2::SubsystemBase {
     /**
      * Drive at approximately the requested speed
      */
-    void drive(frc::ChassisSpeeds speed, bool fieldRelative);
+    void Drive(frc::ChassisSpeeds speed, bool fieldRelative);
 
     /**
      * Move towards the choreo trajectory sample position (with PID feedback)
      */
-    void followTrajectory(const choreo::SwerveSample &sample);
+    void FollowTrajectory(const choreo::SwerveSample &sample);
 
     /**
      * Stop all drivetrain movement
      */
-    void stop();
+    void Stop();
 
     /**
      *  Reset forward for the driver to be the way the robot is currently facing
      */
-    void resetFieldOrientation(bool inverted);
+    void ResetFieldOrientation(bool inverted);
 
     /**
      * Reset the robot's pose to the provided pose
      */
-    void resetPose(frc::Pose3d pose);
+    void ResetPose(frc::Pose3d pose);
 
     /**
      * Gets the robot's current pose (position + orientation)
      */
-    frc::Pose3d getPose();
+    frc::Pose3d GetPose();
 
     /**
      * Incorporate a vision pose measurement into the robots cumulative pose estimation
      */
-    void updateVisionPose(frc::Pose3d measurement, units::millisecond_t timestamp);
+    void UpdateVisionPose(frc::Pose3d measurement, units::millisecond_t timestamp);
 
     /**
      * Get the current wheel positions for odometry
      */
-    const frc::MecanumDriveWheelPositions getWheelPositions();
+    const frc::MecanumDriveWheelPositions GetWheelPositions();
 
     frc::MecanumDriveKinematics driveKinematics{
       DriveConstants::kFrontLeftWheel,
@@ -95,7 +95,7 @@ class DriveSubsystem : public frc2::SubsystemBase {
     frc::PIDController yController;
     frc::PIDController rController;
 
-    static void graphClosedLoop(rev::spark::SparkMax &motor);
+    static void GraphClosedLoop(rev::spark::SparkMax &motor);
 
     // TODO: Add chassis position PID loops
     // TODO: Add Choreo path following

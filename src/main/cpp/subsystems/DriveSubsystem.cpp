@@ -1,4 +1,5 @@
 // Copyright (c) FRC 2559, FIRST, and other WPILib contributors.
+
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
@@ -22,7 +23,7 @@ DriveSubsystem::DriveSubsystem() :
     rearLeftMotor{kRearLeftDriveID, rev::spark::SparkMax::MotorType::kBrushless},
     rearRightMotor{kRearRightDriveID, rev::spark::SparkMax::MotorType::kBrushless},
     ahrs{studica::AHRS::NavXComType::kMXP_SPI},
-    poseEstimator{driveKinematics, ahrs.GetRotation3d(), getWheelPositions(), frc::Pose3d()},
+    poseEstimator{driveKinematics, ahrs.GetRotation3d(), GetWheelPositions(), frc::Pose3d()},
     wheelSpeedTuner{[this](PIDUpdate update) {
       SparkMaxConfig config;
       switch (update.term) {
@@ -114,7 +115,7 @@ DriveSubsystem::DriveSubsystem() :
 }
 
 void DriveSubsystem::Periodic() {
-  frc::Pose2d pose = poseEstimator.Update(ahrs.GetRotation3d(), getWheelPositions()).ToPose2d();
+  frc::Pose2d pose = poseEstimator.Update(ahrs.GetRotation3d(), GetWheelPositions()).ToPose2d();
 
   nt_flVelocity.Set(frontLeftMotor.GetEncoder().GetVelocity());
   nt_flOutput.Set(frontLeftMotor.GetAppliedOutput());
@@ -137,7 +138,7 @@ void DriveSubsystem::TestInit() {
   frc::SmartDashboard::PutData("Drive/wheelSpeedTuner", &wheelSpeedTuner);
 }
 
-void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
+void DriveSubsystem::Drive(frc::ChassisSpeeds speed, bool fieldRelative) {
   nt_xOutput.Set(speed.vx.value());
   nt_yOutput.Set(speed.vy.value());
   nt_rOutput.Set(speed.omega.value());
@@ -181,8 +182,8 @@ void DriveSubsystem::drive(frc::ChassisSpeeds speed, bool fieldRelative) {
   nt_rlSetpoint.Set(wheelSpeeds.rearLeft.value());
 }
 
-void DriveSubsystem::followTrajectory(const choreo::SwerveSample &sample) {
-  frc::Pose2d pose = getPose().ToPose2d();
+void DriveSubsystem::FollowTrajectory(const choreo::SwerveSample &sample) {
+  frc::Pose2d pose = GetPose().ToPose2d();
 
   nt_xSetpoint.Set(sample.x.value());
   nt_ySetpoint.Set(sample.y.value());
@@ -197,7 +198,7 @@ void DriveSubsystem::followTrajectory(const choreo::SwerveSample &sample) {
 
   units::radians_per_second_t rFeedback{rController.Calculate(robot_heading.value(), target_heading.value())};
 
-  drive(
+  Drive(
     frc::ChassisSpeeds(
       sample.vx + xFeedback,
       sample.vy + yFeedback,
@@ -207,30 +208,30 @@ void DriveSubsystem::followTrajectory(const choreo::SwerveSample &sample) {
   );
 }
 
-void DriveSubsystem::stop() {
+void DriveSubsystem::Stop() {
   frontLeftMotor.StopMotor();
   frontRightMotor.StopMotor();
   rearLeftMotor.StopMotor();
   rearRightMotor.StopMotor();
 }
 
-void DriveSubsystem::resetFieldOrientation(bool inverted) {
+void DriveSubsystem::ResetFieldOrientation(bool inverted) {
   poseEstimator.ResetRotation(frc::Rotation3d(inverted ? frc::Rotation2d(180_deg) : frc::Rotation2d(0_deg)));
 }
 
-void DriveSubsystem::resetPose(frc::Pose3d pose) {
+void DriveSubsystem::ResetPose(frc::Pose3d pose) {
   poseEstimator.ResetPose(pose);
 }
 
-frc::Pose3d DriveSubsystem::getPose() {
+frc::Pose3d DriveSubsystem::GetPose() {
   return poseEstimator.GetEstimatedPosition();
 }
 
-void DriveSubsystem::updateVisionPose(frc::Pose3d measurement, units::millisecond_t timestamp) {
+void DriveSubsystem::UpdateVisionPose(frc::Pose3d measurement, units::millisecond_t timestamp) {
   poseEstimator.AddVisionMeasurement(measurement, timestamp);
 }
 
-const frc::MecanumDriveWheelPositions DriveSubsystem::getWheelPositions() {
+const frc::MecanumDriveWheelPositions DriveSubsystem::GetWheelPositions() {
   return frc::MecanumDriveWheelPositions{
     units::meter_t{frontLeftMotor.GetEncoder().GetPosition()},
     units::meter_t{frontRightMotor.GetEncoder().GetPosition()},
