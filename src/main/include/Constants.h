@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc/geometry/Translation2d.h>
 #include <frc/system/plant/DCMotor.h>
 #include <units/angle.h>
@@ -90,3 +91,11 @@ namespace DriveConstants {
     inline constexpr double kD = 0.0;
   } // namespace OrientationPID
 } // namespace DriveConstants
+
+namespace VisionConstants {
+  inline const frc::AprilTagFieldLayout kTagLayout{
+      frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::kDefaultField)};
+  inline const frc::Transform3d kRobotToCam{
+    frc::Translation3d{0.5_m, 0.0_m, 0.5_m},
+    frc::Rotation3d{0_rad, -30_deg, 0_rad}};
+}
