@@ -27,7 +27,7 @@
 
 namespace OperatorConstants {
   inline constexpr int kDriverControllerPort = 0;
-}
+} // namespace OperatorConstants
 
 namespace DriveConstants {
   inline constexpr int kFrontLeftDriveID = 0;
@@ -74,19 +74,19 @@ namespace DriveConstants {
       (1.0 / driveMotorModel.Kv / kDriveDistancePerRotation)
         .convert<units::compound_unit<units::volt, units::inverse<units::meters_per_second>>>()
         .value();
-  }
+  } // namespace DrivePID
 
   // Closed loop feedback for chassis translation
   namespace TranslationPID {
     inline constexpr double kP = 1.0;
     inline constexpr double kI = 0.0;
     inline constexpr double kD = 0.0;
-  }
+  } // namespace TranslationPID
 
   // Closed loop feedback for chassis orientation
   namespace OrientationPID {
     inline constexpr double kP = 1.0;
     inline constexpr double kI = 0.0;
     inline constexpr double kD = 0.0;
-  }
-}
+  } // namespace OrientationPID
+} // namespace DriveConstants
